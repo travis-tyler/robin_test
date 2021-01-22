@@ -6,5 +6,11 @@ def success(message):
 def error(message):
     click.echo(click.style(str(message), fg='red', bold=True))
 
-def bar(message):
+def bar():
     click.echo(click.style('=============', fg='red', bold=True))
+
+def chec_ref(result):
+    if 'ref_id' in result:
+        success(result)
+    else:
+        error(result)
