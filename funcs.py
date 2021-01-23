@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import json
 import ui
 
 def is_support(df, i):
@@ -39,6 +40,9 @@ def make_df(result):
     df['date'] = pd.to_datetime(df['date'])
     cols = df.columns.drop('date')
     df[cols] = df[cols].apply(pd.to_numeric, errors='coerce')
+
+    with open('data.txt', 'w') as outfile:
+        json.dump(hist, outfile)
 
     return df
 
