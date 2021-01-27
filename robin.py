@@ -98,14 +98,11 @@ def get_lines(symbol, interval, span):
     price = rh.get_quotes(symbol)[0]['last_extended_hours_trade_price']
 
     ui.bar()
-    ui.success(f"Value: {price}")
+    print(f"Value: {price}")
     ui.bar()
     df = funcs.make_df(result)
     funcs.get_s_r(df)
     ui.bar()
-
-    # with open('data.txt', 'w') as outfile:
-    #     json.dump(result, outfile)
 
 @main.command(help='Gets the information associated with the portfolios profile.')
 def portfolio():
@@ -125,6 +122,24 @@ def ratings(symbol):
     ui.success(f'\nGet stock ratings for {symbol}....\n')
     result = rh.get_ratings(symbol)
     ui.success(result)
+
+@main.command(help='Returns the earnings for the different financial quarters.')
+@click.argument('symbol', type=click.STRING)
+def get_earnings(symbol):
+    result = rh.get_earnings(symbol)
+    ui.success(result)
+
+@main.command(help='Builds a dictionary of important information regarding the stocks and positions owned by the user.')
+def holdings():
+    result = rh.build_holdings()
+    ui.success(result)
+
+@main.command(help='Returns a list containing every position ever traded.')
+def all_positions():
+    print('\nRetrieving all positions ever traded....\n')
+    result = rh.get_all_positions()
+    ui.success(result)
+    
 
 if __name__ == '__main__':
     main()
