@@ -79,8 +79,21 @@ def buy_frac(amount, symbol):
 @click.option('--interval', type=click.STRING)
 @click.option('--span', type=click.STRING)
 def history(symbol, interval, span):
-    ui.success(f'\nGet {interval} stock historicals for {symbol} for the past {span}....\n')
+    ui.success(f'\nGetting {interval} stock historicals for {symbol} for the past {span}....\n')
     result = rh.get_stock_historicals(symbol, interval, span)
+
+    for i in result:
+        for x in i:
+            ui.success(f'{x}: {i[x]}')
+        ui.bar()
+
+@main.command(help='Gets historical information about a crypto including open price, close price, high price, and low price.')
+@click.argument('symbol', type=click.STRING)
+@click.option('--interval', type=click.STRING)
+@click.option('--span', type=click.STRING)
+def crypto_history(symbol, interval, span):
+    ui.success(f'\nGetting {interval} stock historicals for {symbol} for the past {span}....\n')
+    result = rh.get_crypto_historicals(symbol, interval, span)
 
     for i in result:
         for x in i:
@@ -103,6 +116,11 @@ def get_lines(symbol, interval, span):
     df = funcs.make_df(result)
     funcs.get_s_r(df)
     ui.bar()
+
+@main.command(help='Returns day trade history.')
+def day_trades():
+    result = rh.get_day_trades()
+    ui.success(len(result))
 
 @main.command(help='Gets the information associated with the portfolios profile.')
 def portfolio():
@@ -139,7 +157,17 @@ def all_positions():
     print('\nRetrieving all positions ever traded....\n')
     result = rh.get_all_positions()
     ui.success(result)
-    
 
+@main.command(help='Returns a list of stocks that are currently held.')
+def positions():
+    result = rh.get_open_stock_positions()
+    ui.success(result)
+
+@main.command(help='Returns a list of notifications.')
+def notifications():
+    result = rh.get_notifications()
+    ui.success(result)
+    
+    
 if __name__ == '__main__':
     main()
