@@ -1,5 +1,6 @@
 import click, json, robin_stocks as rh
 import ui, funcs, config
+from datetime import datetime
 
 @click.group()
 def main():
@@ -62,7 +63,6 @@ def sell(quantity, symbol, limit):
     else:
         ui.success(f'\nSelling {quantity} of {symbol} at market price....\n')
         result = rh.order_sell_market(symbol, quantity)
-
     ui.chec_ref(result)
 
 @main.command(help='Buys fractional shares by symbol')
@@ -71,7 +71,6 @@ def sell(quantity, symbol, limit):
 def buy_frac(amount, symbol):
     ui.success(f'\nBuying ${amount} of {symbol}....\n')
     result = rh.order_buy_fractional_by_price(symbol, amount)
-
     ui.chec_ref(result)
 
 @main.command(help='Represents the historicl data for a stock.')
@@ -87,6 +86,12 @@ def history(symbol, interval, span):
             ui.success(f'{x}: {i[x]}')
         ui.bar()
 
+@main.command(help='Gets crypto quote by symbol.')
+@click.argument('symbol', type=click.STRING)
+def crypto_quote(symbol):
+    result = rh.get_crypto_quote(symbol)
+    ui.success(result)
+
 @main.command(help='Gets historical information about a crypto including open price, close price, high price, and low price.')
 @click.argument('symbol', type=click.STRING)
 @click.option('--interval', type=click.STRING)
@@ -100,6 +105,25 @@ def crypto_history(symbol, interval, span):
             ui.success(f'{x}: {i[x]}')
         ui.bar()
 
+@main.command(help='Places order for crypto with symbol and price.')
+@click.argument('symbol', type=click.STRING)
+@click.argument('amount', type=click.FLOAT)
+def buy_crypto(symbol, amount):
+    ui.success(f'Ordering ${amount} of {symbol}....\n')
+    result = rh.order_buy_crypto_by_price(symbol, amount)
+    ui.chec_ref(result)
+
+@main.command(help='Places order for Dogecoin with symbol and price.')
+@click.argument('amount', type=click.FLOAT)
+def buy_doge(amount):
+    ui.success(f'Ordering ${amount} of DOGE....\n')
+    # Doge error workaround
+    price = float(rh.get_crypto_quote('DOGE').get('ask_price'))
+    shares = round(amount/price, 0)
+    result = rh.order_buy_crypto_by_quantity('DOGE', shares)
+
+    ui.chec_ref(result)
+    
 @main.command(help='Generates support and resistance data from stock history by symbol.')
 @click.argument('symbol', type=click.STRING)
 @click.option('--interval', type=click.STRING)
@@ -121,6 +145,63 @@ def get_lines(symbol, interval, span):
 def day_trades():
     result = rh.get_day_trades()
     ui.success(len(result))
+
+
+
+
+
+
+#OPTIONS
+@main.command(help='Submits a limit order for an option. i.e. place a long call or a long put.')
+@click.argument('buy_close', type=click.STRING)
+#??????????????
+@click.argument('credit_debit', type=click.STRING)
+@click.argument('price', type=click.FLOAT)
+@click.argument('symbol', type=click.STRING)
+# @click.argument('quantity', type=click.INT)
+@click.argument('date', type=click.STRING)
+@click.argument('strike', type=click.FLOAT)
+@click.argument('option_type', type=click.STRING)
+@click.option('--time_in_force', type=click.STRING)
+def buy_option(buy_close, credit_debit, symbol, price, symbol, option_type, date, strike):
+
+    # Covert date
+    if len(date.split('/')[0]) == 1:
+        month = '0' + date.split('/')[0]
+    else:
+        month = date.split('/')[0]
+    if len(date.split('/')[1]) == 1:
+        day = '0' + date.split('/')[0]
+    else:
+        day = date.split('/')[0]
+    today = datetime.today()
+    exp_date = f'{month}/{day}/{str(today.year)}'
+
+    # Convert position_effect
+    if buy_close == 'BTO':
+        position_effect = 'buy'
+    elif buy_close == 'BTC':
+        position_effect == 'close'
+    else:
+        print('Invalid position effect')
+
+    # Convert option_type
+    if option_type == 'C':
+        call_put = 'call'
+    elif option_type == 'P':
+        call_put == 'put'
+    else:
+        print('Invalid option type')
+
+    #EXAMPLE = BTO GME 50 P 2/12 4.85
+    result = rh.order_buy_option_limit(position_effect, credit_debit(?), price, quantity = 1, strike, exp_date)
+    ui.chec_ref(result)
+
+
+
+
+
+
 
 @main.command(help='Gets the information associated with the portfolios profile.')
 def portfolio():
@@ -167,7 +248,6 @@ def positions():
 def notifications():
     result = rh.get_notifications()
     ui.success(result)
-    
     
 if __name__ == '__main__':
     main()
